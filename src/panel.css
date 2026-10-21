@@ -1,0 +1,57 @@
+:host { all: initial; }
+* { box-sizing: border-box; }
+.panel {
+  position: fixed;
+  z-index: 2147483647;
+  width: 300px;
+  background: #fff;
+  color: #1f2329;
+  border: 1px solid #d9dde3;
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .18);
+  font: 12px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+.hd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #f5f7fa;
+  border-bottom: 1px solid #e5e8ec;
+  cursor: move;
+}
+.hd .title { font-weight: 600; }
+.hd .phase { margin-left: auto; color: #646a73; }
+.hd button {
+  border: 0; background: transparent; cursor: pointer;
+  font-size: 14px; line-height: 1; color: #646a73; padding: 2px 4px;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #8f959e; }
+.dot[data-phase="RUNNING"] { background: #34a853; }
+.dot[data-phase="ADVANCING"] { background: #fbbc04; }
+.dot[data-phase="COMPLETED"] { background: #1a73e8; }
+.dot[data-phase="ERROR"] { background: #ea4335; }
+.bd { padding: 10px 12px 12px; }
+.row { display: flex; gap: 8px; margin: 4px 0; }
+.row .k { flex: 0 0 58px; color: #8f959e; }
+.row .v { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar { height: 6px; background: #eef0f3; border-radius: 3px; overflow: hidden; margin: 6px 0 8px; }
+.bar .fill { height: 100%; width: 0; background: #1a73e8; transition: width .3s; }
+.msg { min-height: 18px; margin: 4px 0; color: #646a73; word-break: break-all; }
+.msg.warn { color: #b06000; }
+.msg.error { color: #c5221f; }
+.msg.success { color: #137333; }
+.actions { display: flex; gap: 8px; margin-top: 8px; }
+.actions button {
+  flex: 1; padding: 6px 8px; border-radius: 6px; cursor: pointer;
+  border: 1px solid #d9dde3; background: #fff; color: #1f2329;
+}
+.actions button:hover { background: #f5f7fa; }
+.actions button:disabled { opacity: .5; cursor: default; }
+.options { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; color: #646a73; }
+.options label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.panel.collapsed { width: auto; }
+.panel.collapsed .bd { display: none; }
+.panel.collapsed .hd { border-bottom: 0; }
