@@ -57,3 +57,20 @@ export function parsePageIndicator(text) {
   if (page < 1 || pageCount < 1 || page > pageCount) return null;
   return { page, pageCount };
 }
+
+export function pickNextIndex(length, activeIndex) {
+  if (!Number.isInteger(length) || length <= 0) return { kind: 'invalid' };
+  if (!Number.isInteger(activeIndex) || activeIndex < 0 || activeIndex >= length) {
+    return { kind: 'invalid' };
+  }
+  if (activeIndex === length - 1) return { kind: 'end' };
+  return { kind: 'next', index: activeIndex + 1 };
+}
+
+export function shouldFlip({ page, pageCount, lastFlipAt, now, intervalMs, running }) {
+  if (!running) return false;
+  if (!Number.isInteger(page) || !Number.isInteger(pageCount)) return false;
+  if (page < 1 || page >= pageCount) return false;
+  if (!Number.isFinite(lastFlipAt)) return false;
+  return now - lastFlipAt >= intervalMs;
+}

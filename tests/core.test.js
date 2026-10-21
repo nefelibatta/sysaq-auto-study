@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   parseDuration, formatDuration, isComplete, progressPercent,
   parseDocProgress, parseTotalProgress, parsePageIndicator,
+  pickNextIndex, shouldFlip,
 } from '../src/core.js';
 
 test('parseDuration 解析 m:ss 与 h:mm:ss', () => {
@@ -65,4 +66,23 @@ test('parsePageIndicator 解析页码', () => {
   assert.deepEqual(parsePageIndicator(' 1/22 '), { page: 1, pageCount: 22 });
   assert.equal(parsePageIndicator('22 / 3'), null);
   assert.equal(parsePageIndicator(''), null);
+});
+
+test('pickNextIndex 返回下一章、结束或无效', () => {
+  assert.deepEqual(pickNextIndex(3, 0), { kind: 'next', index: 1 });
+  assert.deepEqual(pickNextIndex(3, 1), { kind: 'next', index: 2 });
+  assert.deepEqual(pickNextIndex(3, 2), { kind: 'end' });
+  assert.deepEqual(pickNextIndex(3, 3), { kind: 'invalid' });
+  assert.deepEqual(pickNextIndex(0, 0), { kind: 'invalid' });
+  assert.deepEqual(pickNextIndex(3, -1), { kind: 'invalid' });
+});
+
+test('shouldFlip 只在运行时且未到最后一页时按间隔触发', () => {
+  const base = { page: 3, pageCount: 22, lastFlipAt: 1000, now: 61000, intervalMs: 60000, running: true };
+  assert.equal(shouldFlip(base), true);
+  assert.equal(shouldFlip({ ...base, now: 60999 }), false);
+  assert.equal(shouldFlip({ ...base, page: 22 }), false);
+  assert.equal(shouldFlip({ ...base, running: false }), false);
+  assert.equal(shouldFlip({ ...base, lastFlipAt: null }), false);
+  assert.equal(shouldFlip({ ...base, page: null }), false);
 });
