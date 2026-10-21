@@ -7,13 +7,14 @@
 - 目标站点：`https://sysaq.ustc.edu.cn/lab-study-front/examTask/*`
 - 版本：`0.1.0`
 - 运行环境：Chrome / Edge（建议 Chromium 138 及以上）+ Tampermonkey 5.x
-- 构建产物：`dist/sysaq-auto-study.user.js`
+- GitHub 仓库：<https://github.com/nefelibatta/sysaq-auto-study>
+- 构建产物：`dist/sysaq-auto-study.user.js`（已包含在仓库中）
 
 ## 快速开始
 
 1. 安装 Tampermonkey（篡改猴）扩展。
 2. Chrome 138+ / Edge 138+：在扩展详情页开启 **“允许用户脚本”**（Allow User Scripts）。
-3. 将 `dist/sysaq-auto-study.user.js` 导入 Tampermonkey。
+3. 从 [GitHub 仓库](https://github.com/nefelibatta/sysaq-auto-study) 下载 `dist/sysaq-auto-study.user.js`，导入 Tampermonkey。
 4. 打开学习详情页，右下角出现“自动学习”浮窗后点击 **“启用”**。
 
 > 只把扩展本身“启用”是不够的。Chrome/Edge 138 起，MV3 用户脚本还需要单独打开“允许用户脚本”，否则脚本不会执行，浮窗也不会出现。
@@ -57,12 +58,16 @@
 3. 进入 **详情**，打开 **“允许用户脚本”**（Allow User Scripts，部分版本显示为“允许运行用户脚本”）。
 4. 建议点击扩展卡片上的刷新按钮，或重启浏览器，让扩展重新加载。
 
-### 2. 导入脚本
+### 2. 获取并安装脚本
 
 任选一种方式：
 
-- **导入文件**：Tampermonkey 管理面板 → 实用工具 → 导入文件 → 选择 `dist/sysaq-auto-study.user.js` → 安装。
-- **粘贴安装**：Tampermonkey 管理面板 → 添加新脚本 → 粘贴 `dist/sysaq-auto-study.user.js` 的全部内容 → `Ctrl+S` 保存。
+- **从 GitHub 下载**：打开仓库中的 `dist/sysaq-auto-study.user.js`，点击 **Raw** 或下载按钮保存文件，再按下面的“导入文件”安装。
+- **在线安装**：仓库为公开仓库时，直接打开
+  `https://raw.githubusercontent.com/nefelibatta/sysaq-auto-study/main/dist/sysaq-auto-study.user.js`，
+  Tampermonkey 会自动弹出安装页；私有仓库请用下载后导入的方式。
+- **导入文件**：Tampermonkey 管理面板 → 实用工具 → 导入文件 → 选择 `sysaq-auto-study.user.js` → 安装。
+- **粘贴安装**：Tampermonkey 管理面板 → 添加新脚本 → 粘贴 `sysaq-auto-study.user.js` 的全部内容 → `Ctrl+S` 保存。
 
 ### 3. 开始使用
 
@@ -159,7 +164,7 @@ npm test        # 31 项单元测试
 npm run build   # 重新生成 dist/sysaq-auto-study.user.js
 ```
 
-构建使用 esbuild，将 `src/main.js` 打包为 IIFE，并把 CSS 内联进产物。请修改 `src/` 后重新构建，不要直接编辑 `dist/`。
+构建使用 esbuild，将 `src/main.js` 打包为 IIFE，并把 CSS 内联进产物。仓库已包含构建产物；修改 `src/` 后请重新运行 `npm run build` 并提交更新后的 `dist/`，不要直接编辑产物。
 
 ## 项目结构
 
