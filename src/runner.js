@@ -14,7 +14,7 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
   let phase = PHASE.PAUSED;
   let message = '';
   let errorCode = null;
-  let snapshot = { ready: false, chapters: [], activeIndex: -1, doc: null, total: null, viewer: null };
+  let snapshot = { ready: false, chapters: [], activeIndex: -1, doc: null, total: null, viewer: null, canvasReady: false };
   let page = { current: null, count: null };
   let lastFlipAt = null;
   let completionReachedAt = null;
@@ -64,6 +64,11 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
     page = snapshot.viewer
       ? { current: snapshot.viewer.page, count: snapshot.viewer.pageCount }
       : { current: null, count: null };
+  }
+
+  function refresh() {
+    read();
+    render();
   }
 
   function start() {
@@ -128,6 +133,7 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
       retries: 0,
       retryAt: nowMs + config.advanceRetryDelaysMs[0],
       verifiedAt: null,
+      baselineLearned: snapshot.doc ? snapshot.doc.learnedSec : null,
     };
     if (!dom.clickChapter(next.index)) {
       advance = null;
@@ -141,10 +147,16 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
   function checkAdvance(nowMs) {
     if (!advance) { setPhase(PHASE.RUNNING); return; }
     if (advance.verifiedAt !== null) {
-      if (nowMs - advance.verifiedAt >= config.settleMs) finishAdvance();
+      if (nowMs - advance.verifiedAt >= config.settleMs) {
+        const doc = snapshot.doc;
+        const notReset = advance.baselineLearned !== null && advance.baselineLearned > 0
+          && doc && doc.learnedSec >= advance.baselineLearned;
+        if (notReset) ui.warn('新章节进度未重置，请留意学习时长是否正常累计');
+        finishAdvance();
+      }
       return;
     }
-    if (snapshot.activeIndex === advance.targetIndex && snapshot.viewer) {
+    if (snapshot.activeIndex === advance.targetIndex && snapshot.canvasReady) {
       advance.verifiedAt = nowMs;
       return;
     }
@@ -155,8 +167,12 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
       return;
     }
     advance.retries += 1;
-    dom.clickChapter(advance.targetIndex);
-    ui.logAction(`重试切换下一章（第 ${advance.retries} 次）`);
+    if (settings().dryRun) {
+      ui.logAction(`演练：将重试切换到下一章（第 ${advance.retries} 次）`);
+    } else {
+      dom.clickChapter(advance.targetIndex);
+      ui.logAction(`重试切换下一章（第 ${advance.retries} 次）`);
+    }
     advance.retryAt = nowMs + (config.advanceRetryDelaysMs[advance.retries] ?? 10000);
   }
 
@@ -186,12 +202,19 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
     if (completionReachedAt === null) completionReachedAt = nowMs;
   }
 
+  function recoverIfHealthy() {
+    if (phase !== PHASE.ERROR || errorCode === 'advance-failed') return;
+    const doc = snapshot.doc;
+    const healthy = snapshot.ready
+      && (errorCode !== 'no-active' || snapshot.activeIndex >= 0)
+      && (errorCode !== 'invalid-required' || (doc !== null && doc.requiredSec > 0));
+    if (healthy) setPhase(PHASE.WAIT_PAGE);
+  }
+
   function ensureStructure(nowMs) {
     if (snapshot.ready) {
       missingSince = null;
-      if (phase === PHASE.WAIT_PAGE || (phase === PHASE.ERROR && errorCode === 'structure')) {
-        setPhase(PHASE.RUNNING);
-      }
+      if (phase === PHASE.WAIT_PAGE) setPhase(PHASE.RUNNING);
       return true;
     }
     if (missingSince === null) missingSince = nowMs;
@@ -203,8 +226,9 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
   }
 
   function tick(nowMs = now()) {
-    if (phase === PHASE.PAUSED || phase === PHASE.COMPLETED) { render(); return; }
     read();
+    if (phase === PHASE.PAUSED || phase === PHASE.COMPLETED) { render(); return; }
+    if (phase === PHASE.ERROR) recoverIfHealthy();
     if (phase === PHASE.ADVANCING) { checkAdvance(nowMs); render(); return; }
     if (!ensureStructure(nowMs)) { render(); return; }
     if (phase !== PHASE.RUNNING) { render(); return; }
@@ -233,9 +257,9 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
       intervalMs: config.flipIntervalMs,
       running: phase === PHASE.RUNNING,
     })) {
+      lastFlipAt = nowMs;
       const ok = settings().dryRun ? true : dom.clickNextPage();
       if (ok) {
-        lastFlipAt = nowMs;
         ui.logAction(`翻到第 ${Math.min(page.current + 1, page.count)} 页`);
         page.current = Math.min(page.current + 1, page.count);
       }
@@ -251,5 +275,5 @@ export function createRunner({ dom, ui, config = CONFIG, getSettings, now = () =
     render();
   }
 
-  return { start, tick, pause, resume, requestAdvance, getState };
+  return { start, tick, refresh, pause, resume, requestAdvance, getState };
 }

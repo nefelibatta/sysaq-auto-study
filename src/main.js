@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import {
-  loadSettings, saveSettings,
+  SETTINGS_KEY, loadSettings, saveSettings,
   acquireLease, renewLease, isLeaseOwner, releaseLease,
 } from './settings.js';
 import { readSnapshot, clickChapter, clickNextPage } from './dom.js';
@@ -40,6 +40,7 @@ const TITLE_PREFIX = {
           panel.notify('另一标签页正在自动学习', 'warn');
           return;
         }
+        settings = loadSettings(storage);
         if (state.phase === PHASE.ERROR) {
           settings.enabled = true;
           saveSettings(storage, settings);
@@ -58,6 +59,7 @@ const TITLE_PREFIX = {
       },
       onAdvance() { runner.requestAdvance(); },
       onSetting(key, value) {
+        settings = loadSettings(storage);
         settings[key] = value;
         saveSettings(storage, settings);
         if (key === 'keepAwake') {
@@ -73,6 +75,7 @@ const TITLE_PREFIX = {
         panel.render(runner.getState());
       },
       onPanelChange(patch) {
+        settings = loadSettings(storage);
         settings.panel = { ...settings.panel, ...patch };
         saveSettings(storage, settings);
       },
@@ -113,12 +116,12 @@ const TITLE_PREFIX = {
         renewLease(storage, tabId, nowMs, CONFIG.leaseTtlMs);
         lastLeaseRenewAt = nowMs;
       }
-      if (pausedByLease) { pausedByLease = false; runner.resume(); }
+      if (runner.getState().phase === PHASE.PAUSED) { pausedByLease = false; runner.resume(); }
       return true;
     }
     if (acquireLease(storage, tabId, nowMs, CONFIG.leaseTtlMs)) {
       lastLeaseRenewAt = nowMs;
-      if (pausedByLease) { pausedByLease = false; runner.resume(); }
+      if (runner.getState().phase === PHASE.PAUSED) { pausedByLease = false; runner.resume(); }
       return true;
     }
     if (!pausedByLease) {
@@ -131,18 +134,21 @@ const TITLE_PREFIX = {
 
   function loop() {
     const nowMs = Date.now();
+    settings = loadSettings(storage);
     if (runner.getState().phase === PHASE.COMPLETED) {
       releaseLease(storage, tabId);
-      panel.render(runner.getState());
+      runner.refresh();
       return;
     }
     if (!settings.enabled) {
+      pausedByLease = false;
+      if (runner.getState().phase !== PHASE.PAUSED) runner.pause();
       releaseLease(storage, tabId);
-      panel.render(runner.getState());
+      runner.refresh();
       return;
     }
     if (!leaseStep(nowMs)) {
-      panel.render(runner.getState());
+      runner.refresh();
       return;
     }
     runner.tick(nowMs);

@@ -5,6 +5,7 @@ export const SEL = Object.freeze({
   progress: '.positionRight',
   total: '.m-center .time',
   viewer: '.pptbox',
+  canvas: '.vue-pdf-embed__page canvas',
   pageBtn: '.pageBtn',
   nextPage: '.pageBtn span.btn-a',
 });

@@ -21,13 +21,16 @@ export function readSnapshot() {
     viewer = indicator ? parsePageIndicator(normalize(indicator)) : null;
   }
 
+  const canvasReady = Boolean(viewerEl && viewerEl.querySelector(SEL.canvas));
+
   return {
-    ready: chapterEls.length > 0 && doc !== null,
+    ready: chapterEls.length > 0 && doc !== null && (activeIndex < 0 || viewerEl !== null),
     chapters,
     activeIndex,
     doc,
     total,
     viewer,
+    canvasReady,
   };
 }
 

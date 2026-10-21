@@ -10,6 +10,7 @@ function makeEnv(overrides = {}) {
     doc: { learnedSec: 0, requiredSec: 1800 },
     total: { learnedSec: 0, requiredSec: 10800 },
     viewer: { page: 1, pageCount: 22 },
+    canvasReady: true,
     ...overrides,
   };
   const calls = { chapter: [], nextPage: 0, renders: [], warns: [], errors: [], logs: [], completes: 0 };
@@ -162,4 +163,57 @@ test('进度 10 分钟无增长时告警一次', () => {
   env.runner.tick(300000);
   env.runner.tick(610000);
   assert.equal(env.calls.warns.filter((m) => m.includes('10 分钟')).length, 1);
+});
+
+test('暂停时 refresh 仍读取页面', () => {
+  const env = makeEnv();
+  env.runner.start();
+  env.runner.pause();
+  env.snap.doc.learnedSec = 120;
+  env.snap.viewer = { page: 5, pageCount: 22 };
+  env.runner.refresh();
+  assert.equal(env.runner.getState().doc.learnedSec, 120);
+  assert.equal(env.runner.getState().viewer.page, 5);
+});
+
+test('找不到章节的错误在章节出现后自动恢复', () => {
+  const env = makeEnv({ activeIndex: -1, viewer: null });
+  env.runner.start();
+  env.runner.tick(0);
+  assert.equal(env.runner.getState().phase, PHASE.ERROR);
+  env.snap.activeIndex = 0;
+  env.snap.viewer = { page: 1, pageCount: 22 };
+  env.runner.tick(1000);
+  assert.equal(env.runner.getState().phase, PHASE.RUNNING);
+});
+
+test('切换中途开启演练模式后重试不点击', () => {
+  const env = makeEnv({ doc: { learnedSec: 1800, requiredSec: 1800 } });
+  env.setSwitchOnClick(false);
+  env.runner.start();
+  env.runner.tick(0);
+  env.runner.tick(30000);
+  assert.equal(env.calls.chapter.length, 1);
+  env.settings.dryRun = true;
+  env.runner.tick(32000);
+  assert.equal(env.calls.chapter.length, 1);
+  assert.ok(env.calls.logs.some((m) => m.includes('演练')));
+});
+
+test('切换验证需要 canvas，进度未重置时告警', () => {
+  const env = makeEnv({ doc: { learnedSec: 1800, requiredSec: 1800 } });
+  env.setSwitchOnClick(false);
+  env.runner.start();
+  env.runner.tick(0);
+  env.runner.tick(30000);
+  assert.equal(env.runner.getState().phase, PHASE.ADVANCING);
+  env.snap.activeIndex = 1;
+  env.snap.canvasReady = false;
+  env.runner.tick(31000);
+  assert.equal(env.runner.getState().phase, PHASE.ADVANCING);
+  env.snap.canvasReady = true;
+  env.runner.tick(33000);
+  env.runner.tick(43000);
+  assert.equal(env.runner.getState().phase, PHASE.RUNNING);
+  assert.ok(env.calls.warns.some((m) => m.includes('未重置')));
 });
