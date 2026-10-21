@@ -1,0 +1,13 @@
+{
+  "name": "sysaq-auto-study",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test tests/"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
