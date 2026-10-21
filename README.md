@@ -14,7 +14,7 @@
 
 1. 安装 Tampermonkey（篡改猴）扩展。
 2. Chrome 138+ / Edge 138+：在扩展详情页开启 **“允许用户脚本”**（Allow User Scripts）。
-3. 从 [GitHub 仓库](https://github.com/nefelibatta/sysaq-auto-study) 下载 `dist/sysaq-auto-study.user.js`，导入 Tampermonkey。
+3. 打开[在线安装链接](https://raw.githubusercontent.com/nefelibatta/sysaq-auto-study/main/dist/sysaq-auto-study.user.js)，Tampermonkey 会自动弹出安装页。
 4. 打开学习详情页，右下角出现“自动学习”浮窗后点击 **“启用”**。
 
 > 只把扩展本身“启用”是不够的。Chrome/Edge 138 起，MV3 用户脚本还需要单独打开“允许用户脚本”，否则脚本不会执行，浮窗也不会出现。
@@ -62,10 +62,10 @@
 
 任选一种方式：
 
-- **从 GitHub 下载**：打开仓库中的 `dist/sysaq-auto-study.user.js`，点击 **Raw** 或下载按钮保存文件，再按下面的“导入文件”安装。
-- **在线安装**：仓库为公开仓库时，直接打开
+- **在线安装（推荐）**：直接打开
   `https://raw.githubusercontent.com/nefelibatta/sysaq-auto-study/main/dist/sysaq-auto-study.user.js`，
-  Tampermonkey 会自动弹出安装页；私有仓库请用下载后导入的方式。
+  Tampermonkey 会自动弹出安装页。
+- **从 GitHub 下载**：如果浏览器没有自动弹出安装页，打开仓库中的 `dist/sysaq-auto-study.user.js`，点击 **Raw** 或下载按钮保存文件，再按下面的“导入文件”安装。
 - **导入文件**：Tampermonkey 管理面板 → 实用工具 → 导入文件 → 选择 `sysaq-auto-study.user.js` → 安装。
 - **粘贴安装**：Tampermonkey 管理面板 → 添加新脚本 → 粘贴 `sysaq-auto-study.user.js` 的全部内容 → `Ctrl+S` 保存。
 
