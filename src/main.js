@@ -36,6 +36,10 @@ const TITLE_PREFIX = {
       onToggle() {
         const state = runner.getState();
         if (state.phase === PHASE.COMPLETED) return;
+        if (pausedByLease) {
+          panel.notify('另一标签页正在自动学习', 'warn');
+          return;
+        }
         if (state.phase === PHASE.ERROR) {
           settings.enabled = true;
           saveSettings(storage, settings);
