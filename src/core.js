@@ -29,3 +29,31 @@ export function progressPercent(learnedSec, requiredSec) {
   const raw = Math.round((learnedSec / requiredSec) * 100);
   return Math.max(0, Math.min(100, Number.isFinite(raw) ? raw : 0));
 }
+
+export function parseDocProgress(text) {
+  if (typeof text !== 'string') return null;
+  const m = text.match(/已学习\s*([\d:]+)\s*要求学习\s*([\d:]+)/);
+  if (!m) return null;
+  const learnedSec = parseDuration(m[1]);
+  const requiredSec = parseDuration(m[2]);
+  return learnedSec === null || requiredSec === null ? null : { learnedSec, requiredSec };
+}
+
+export function parseTotalProgress(text) {
+  if (typeof text !== 'string') return null;
+  const m = text.match(/([\d:]+)\s*\/\s*([\d:]+)/);
+  if (!m) return null;
+  const learnedSec = parseDuration(m[1]);
+  const requiredSec = parseDuration(m[2]);
+  return learnedSec === null || requiredSec === null ? null : { learnedSec, requiredSec };
+}
+
+export function parsePageIndicator(text) {
+  if (typeof text !== 'string') return null;
+  const m = text.trim().match(/^(\d+)\s*\/\s*(\d+)$/);
+  if (!m) return null;
+  const page = Number(m[1]);
+  const pageCount = Number(m[2]);
+  if (page < 1 || pageCount < 1 || page > pageCount) return null;
+  return { page, pageCount };
+}

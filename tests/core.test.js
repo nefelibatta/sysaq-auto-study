@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseDuration, formatDuration, isComplete, progressPercent } from '../src/core.js';
+import {
+  parseDuration, formatDuration, isComplete, progressPercent,
+  parseDocProgress, parseTotalProgress, parsePageIndicator,
+} from '../src/core.js';
 
 test('parseDuration 解析 m:ss 与 h:mm:ss', () => {
   assert.equal(parseDuration('12:01'), 721);
@@ -37,4 +40,29 @@ test('progressPercent 限制在 0-100', () => {
   assert.equal(progressPercent(0, 1800), 0);
   assert.equal(progressPercent(2000, 1800), 100);
   assert.equal(progressPercent(10, 0), 0);
+});
+
+test('parseDocProgress 解析已学习/要求学习', () => {
+  assert.deepEqual(parseDocProgress('已学习 12:01 要求学习 30:00'), { learnedSec: 721, requiredSec: 1800 });
+  assert.deepEqual(parseDocProgress('已学习12:01要求学习30:00'), { learnedSec: 721, requiredSec: 1800 });
+  assert.deepEqual(parseDocProgress('已学习 1:02:03 要求学习 2:00:00'), { learnedSec: 3723, requiredSec: 7200 });
+});
+
+test('parseDocProgress 对缺失字段返回 null', () => {
+  assert.equal(parseDocProgress('已学习 12:01'), null);
+  assert.equal(parseDocProgress(''), null);
+  assert.equal(parseDocProgress(null), null);
+});
+
+test('parseTotalProgress 解析总时长', () => {
+  assert.deepEqual(parseTotalProgress('01:55:48 / 03:00:00'), { learnedSec: 6948, requiredSec: 10800 });
+  assert.deepEqual(parseTotalProgress('00:00:00 / 00:00:00'), { learnedSec: 0, requiredSec: 0 });
+  assert.equal(parseTotalProgress('--'), null);
+});
+
+test('parsePageIndicator 解析页码', () => {
+  assert.deepEqual(parsePageIndicator('3 / 22'), { page: 3, pageCount: 22 });
+  assert.deepEqual(parsePageIndicator(' 1/22 '), { page: 1, pageCount: 22 });
+  assert.equal(parsePageIndicator('22 / 3'), null);
+  assert.equal(parsePageIndicator(''), null);
 });
