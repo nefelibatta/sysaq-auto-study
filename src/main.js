@@ -1,6 +1,6 @@
 import { CONFIG } from './config.js';
 import {
-  SETTINGS_KEY, loadSettings, saveSettings,
+  loadSettings, saveSettings,
   acquireLease, renewLease, isLeaseOwner, releaseLease,
 } from './settings.js';
 import { readSnapshot, clickChapter, clickNextPage } from './dom.js';
